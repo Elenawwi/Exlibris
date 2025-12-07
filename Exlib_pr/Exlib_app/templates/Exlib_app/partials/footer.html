@@ -1,0 +1,57 @@
+<footer class="bg-brut-black text-white pt-16 pb-8 border-t-2 border-brut-black">
+    <div class="px-8 lg:px-16 grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div class="md:col-span-2">
+            <div class="flex items-center gap-2 mb-6">
+                <i class="fa-solid fa-book-open text-2xl text-soft-lime"></i>
+                <span class="font-display font-bold text-3xl tracking-tighter">ЭКСЛИБРИС</span>
+            </div>
+            <p class="max-w-sm text-gray-400 mb-6">
+                Онлайн-пространство для тех, кто живет в книгах. Брутальный стиль, нежное содержание.
+            </p>
+            <div class="flex gap-4">
+                <a href="#" class="w-10 h-10 rounded border border-gray-600 flex items-center justify-center hover:bg-soft-lime hover:text-brut-black hover:border-soft-lime transition-colors">
+                    <i class="fa-brands fa-telegram"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded border border-gray-600 flex items-center justify-center hover:bg-soft-blue hover:text-brut-black hover:border-soft-blue transition-colors">
+                    <i class="fa-brands fa-vk"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded border border-gray-600 flex items-center justify-center hover:bg-soft-pink hover:text-brut-black hover:border-soft-pink transition-colors">
+                    <i class="fa-brands fa-youtube"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div>
+            <h4 class="font-bold text-lg mb-4 text-soft-lime">Навигация</h4>
+            <ul class="space-y-2 text-gray-400 text-sm">
+                <li><a href="{% url 'book_list' %}" class="hover:text-white transition-colors">Каталог книг</a></li>
+                <li><a href="{% url 'audiobook_list' %}" class="hover:text-white transition-colors">Аудиокниги</a></li>
+                <li><a href="{% url 'forum' %}" class="hover:text-white transition-colors">Форум</a></li>
+                <li><a href="{% url 'about' %}" class="hover:text-white transition-colors">Блог</a></li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 class="font-bold text-lg mb-4 text-soft-lime">Аккаунт</h4>
+            <ul class="space-y-2 text-gray-400 text-sm">
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'profile' %}" class="hover:text-white transition-colors">Мой профиль</a></li>
+                <li><a href="{% url 'bookmarks' %}" class="hover:text-white transition-colors">Закладки</a></li>
+                <li><a href="#" class="hover:text-white transition-colors">Подписка Pro</a></li>
+                <li><a href="/admin/logout/" class="hover:text-white transition-colors">Выйти</a></li>
+                {% else %}
+                <li><a href="/admin/login/" class="hover:text-white transition-colors">Войти</a></li>
+                <li><a href="#" class="hover:text-white transition-colors">Регистрация</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="px-8 lg:px-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+        <p>&copy; 2024 Exlibris Library. Все права защищены.</p>
+        <div class="flex gap-4 mt-4 md:mt-0">
+            <a href="#" class="hover:text-white">Политика конфиденциальности</a>
+            <a href="#" class="hover:text-white">Условия использования</a>
+        </div>
+    </div>
+</footer>

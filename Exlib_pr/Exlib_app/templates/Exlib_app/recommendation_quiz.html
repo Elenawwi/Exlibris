@@ -1,0 +1,59 @@
+{% extends 'Exlib_app/base.html' %}
+
+{% block title %}Тест рекомендаций | Экслибрис{% endblock %}
+
+{% block content %}
+<section class="p-8 lg:p-12 bg-white min-h-screen">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="font-display text-4xl font-extrabold mb-4">Тест рекомендаций</h1>
+            <p class="text-gray-600">Ответьте на несколько вопросов, чтобы получить персональные рекомендации книг</p>
+        </div>
+        
+        <form id="quiz-form" class="space-y-8">
+            {% for question in questions %}
+            <div class="quiz-question bg-soft-purple/20 border-2 border-brut-black rounded-2xl p-6 shadow-hard" data-question-id="{{ question.id }}">
+                <h3 class="font-bold text-xl mb-4">{{ forloop.counter }}. {{ question.question }}</h3>
+                <div class="space-y-3">
+                    {% for option in question.options.all %}
+                    <label class="flex items-center space-x-3 p-3 bg-white border-2 border-brut-black rounded-lg cursor-pointer hover:bg-soft-lime transition-colors">
+                        <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}" class="text-purple-600 focus:ring-purple-500">
+                        <span class="flex-1">{{ option.text }}</span>
+                    </label>
+                    {% empty %}
+                    <p class="text-gray-500 italic">Варианты ответов пока не добавлены</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-12">
+                <i class="fas fa-clipboard-question text-6xl text-gray-400 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Вопросы пока не добавлены</h3>
+                <p class="text-gray-600">Администратор еще не создал вопросы для теста</p>
+            </div>
+            {% endfor %}
+            
+            {% if questions %}
+            <div class="text-center">
+                <button type="submit" class="px-8 py-4 bg-brut-black text-white font-bold rounded-xl shadow-hard transform hover:-translate-y-1 transition-transform border-2 border-brut-black text-lg">
+                    Получить рекомендации
+                </button>
+            </div>
+            {% endif %}
+        </form>
+        
+        <div id="recommendations-container" class="mt-12"></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        // Анимация появления вопросов
+        $('.quiz-question').each(function(i) {
+            $(this).hide().delay(i * 200).fadeIn(500);
+        });
+    });
+</script>
+{% endblock %}

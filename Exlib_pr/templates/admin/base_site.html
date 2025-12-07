@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Экслибрис{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Панель управления Экслибрис</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrahead %}
+<style>
+    :root {
+        --primary: #18181B;
+        --secondary: #D9F99D;
+    }
+    #header {
+        background-color: var(--primary);
+        color: white;
+    }
+    #branding h1 {
+        color: white;
+    }
+    .module h2, .module caption, .inline-group h2 {
+        background-color: var(--primary);
+        color: white;
+    }
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background-color: var(--primary);
+        color: white;
+        border: 2px solid var(--primary);
+    }
+    .button:hover, input[type=submit]:hover, input[type=button]:hover {
+        background-color: var(--secondary);
+        color: var(--primary);
+    }
+</style>
+{% endblock %}

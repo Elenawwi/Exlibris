@@ -1,0 +1,76 @@
+<section class="bg-brut-black text-white py-12 px-8 lg:px-12 relative overflow-hidden">
+    <!-- Abstract waveforms -->
+    <div class="absolute top-0 left-0 w-full h-full opacity-10" style="background-image: linear-gradient(to right, #333 1px, transparent 1px); background-size: 40px 100%;"></div>
+    
+    <div class="relative z-10 flex flex-col lg:flex-row gap-12 items-center">
+        <div class="lg:w-1/3">
+            <div class="inline-flex items-center gap-2 border border-white/30 rounded-full px-3 py-1 mb-4 text-soft-lime">
+                <i class="fa-solid fa-headphones"></i>
+                <span class="text-xs font-mono uppercase">Аудиокниги</span>
+            </div>
+            <h2 class="font-display text-4xl lg:text-5xl font-bold mb-6">Голоса историй</h2>
+            <p class="text-gray-400 mb-8">От профессиональных дикторов до авторского исполнения. Слушай в дороге, на тренировке или перед сном.</p>
+            
+            <!-- Player Widget -->
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl">
+                {% if audiobooks|length > 0 %}
+                <div class="flex gap-4 items-center mb-3">
+                    <div class="w-12 h-12 bg-soft-purple rounded-md border-2 border-white flex-shrink-0 overflow-hidden">
+                        {% if audiobooks.0.cover_image %}
+                            <img src="{{ audiobooks.0.cover_image.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-headphones text-white"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold">{{ audiobooks.0.title|truncatechars:25 }}</div>
+                        <div class="text-xs text-gray-400">{{ audiobooks.0.author }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="w-full bg-gray-700 h-1.5 rounded-full mb-3">
+                    <div class="bg-soft-lime h-1.5 rounded-full w-1/3"></div>
+                </div>
+                <div class="flex justify-between text-xl px-4">
+                    <i class="fa-solid fa-backward-step cursor-pointer hover:text-soft-lime"></i>
+                    <i class="fa-solid fa-circle-play text-3xl -mt-1 cursor-pointer text-soft-lime hover:scale-110 transition-transform"></i>
+                    <i class="fa-solid fa-forward-step cursor-pointer hover:text-soft-lime"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Horizontal Scroll List -->
+        <div class="lg:w-2/3 flex gap-6 overflow-x-auto pb-8 no-scrollbar">
+            {% for audiobook in audiobooks %}
+            <a href="{% url 'audiobook_detail' audiobook.slug %}" class="min-w-[200px] group">
+                <div class="aspect-square bg-gray-800 rounded-xl border-2 border-white/20 mb-3 relative group-hover:-translate-y-2 transition-transform duration-300">
+                    {% if audiobook.cover_image %}
+                        <img src="{{ audiobook.cover_image.url }}" class="w-full h-full object-cover rounded-xl opacity-80 group-hover:opacity-100">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gray-700 rounded-xl">
+                            <i class="fas fa-headphones text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="w-12 h-12 bg-soft-lime rounded-full flex items-center justify-center text-brut-black border-2 border-brut-black shadow-hard">
+                            <i class="fa-solid fa-play pl-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <h5 class="font-bold truncate">{{ audiobook.title|truncatechars:20 }}</h5>
+                <span class="text-xs text-gray-400">{{ audiobook.duration_display }}</span>
+            </a>
+            {% empty %}
+            <div class="min-w-[200px] text-center">
+                <div class="aspect-square bg-gray-800 rounded-xl border-2 border-white/20 mb-3 flex items-center justify-center">
+                    <i class="fas fa-headphones text-4xl text-gray-400"></i>
+                </div>
+                <h5 class="font-bold">Нет аудиокниг</h5>
+                <span class="text-xs text-gray-400">--:--:--</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

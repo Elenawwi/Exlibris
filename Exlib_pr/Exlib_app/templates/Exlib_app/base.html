@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Экслибрис | Онлайн Библиотека{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syne', 'sans-serif'],
+                    },
+                    colors: {
+                        'brut-black': '#18181B',
+                        'brut-white': '#FAFAFA',
+                        'soft-lime': '#D9F99D',
+                        'soft-purple': '#DDD6FE',
+                        'soft-pink': '#FBCFE8',
+                        'soft-blue': '#BAE6FD',
+                        'soft-ylw': '#FEF08A',
+                    },
+                    boxShadow: {
+                        'hard': '4px 4px 0px 0px #18181B',
+                        'hard-hover': '2px 2px 0px 0px #18181B',
+                        'hard-deep': '8px 8px 0px 0px #18181B',
+                    },
+                    animation: {
+                        'marquee': 'marquee 25s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex justify-center w-full">
+    <div class="w-full max-w-[1440px] bg-brut-white min-h-screen b-raw border-t-0 shadow-2xl relative overflow-hidden mx-auto">
+        
+        <!-- Шапка -->
+        {% include 'Exlib_app/partials/header.html' %}
+        
+        <!-- Бегущая строка -->
+        {% if marquee_messages %}
+        <div class="border-b-2 border-brut-black bg-soft-ylw overflow-hidden py-2 flex whitespace-nowrap">
+            <div class="animate-marquee flex gap-8 font-display font-bold text-lg uppercase tracking-wider">
+                {% for message in marquee_messages %}
+                    <span>✦ {{ message.text }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Основное содержание -->
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Подвал -->
+        {% include 'Exlib_app/partials/footer.html' %}
+        
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="/static/js/main.js"></script>
+    
+    <!-- CSRF Token для AJAX -->
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

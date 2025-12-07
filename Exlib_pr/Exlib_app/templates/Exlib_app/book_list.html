@@ -1,0 +1,36 @@
+{% extends 'Exlib_app/base.html' %}
+
+{% block title %}Каталог книг | Экслибрис{% endblock %}
+
+{% block content %}
+<section class="p-8 lg:p-12 bg-white min-h-screen">
+    <div class="mb-8">
+        <h1 class="font-display text-4xl font-extrabold mb-4">Каталог книг</h1>
+        <div class="flex flex-col md:flex-row justify-between gap-4">
+            <div class="flex gap-2">
+                <a href="?genre=all" class="px-4 py-2 border-2 border-brut-black rounded-lg {% if not request.GET.genre or request.GET.genre == 'all' %}bg-brut-black text-white{% endif %}">Все</a>
+                <a href="?genre=fiction" class="px-4 py-2 border-2 border-brut-black rounded-lg {% if request.GET.genre == 'fiction' %}bg-brut-black text-white{% endif %}">Художественная</a>
+                <a href="?genre=fantasy" class="px-4 py-2 border-2 border-brut-black rounded-lg {% if request.GET.genre == 'fantasy' %}bg-brut-black text-white{% endif %}">Фантастика</a>
+            </div>
+            <form class="flex gap-2">
+                <input type="text" name="search" placeholder="Поиск книг..." class="border-2 border-brut-black px-4 py-2 rounded-lg">
+                <button type="submit" class="bg-brut-black text-white px-4 py-2 rounded-lg border-2 border-brut-black">Найти</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for book in books %}
+        <div class="bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover transition-all">
+            <!-- Карточка книги (по аналогии с partials/recommendations.html) -->
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-book text-6xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-bold mb-2">Книги не найдены</h3>
+            <p class="text-gray-600">Попробуйте изменить параметры поиска</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,109 @@
+/* Custom Marquee Animation */
+@keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+    animation: marquee 30s linear infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+::-webkit-scrollbar-track {
+    background: #ffffff;
+    border-left: 2px solid #18181B;
+}
+::-webkit-scrollbar-thumb {
+    background: #18181B;
+    border: 2px solid #18181B;
+    border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+body {
+    background-color: #f3f4f6;
+    color: #18181B;
+}
+
+/* Utility for raw borders */
+.b-raw {
+    border: 2px solid #18181B;
+}
+
+/* Filter for black and white emojis */
+.emoji-bw {
+    filter: grayscale(100%) contrast(150%);
+}
+
+/* Hide scrollbar for horizontal lists */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Loading animation */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Book cover hover effects */
+.book-cover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.book-cover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* Form styles */
+.form-input {
+    border: 2px solid #18181B;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+}
+.form-input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Alert messages */
+.alert {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 2px solid;
+}
+.alert-success {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    color: #065f46;
+}
+.alert-error {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #991b1b;
+}
+.alert-info {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+}

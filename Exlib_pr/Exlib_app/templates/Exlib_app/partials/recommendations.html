@@ -1,0 +1,82 @@
+<section class="p-8 lg:p-12 bg-soft-purple/20 border-b-2 border-brut-black">
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h3 class="font-display font-bold text-3xl mb-2">Персональная подборка</h3>
+            <p class="text-gray-600 font-medium">Основано на ваших рецензиях на скандинавский нуар</p>
+        </div>
+        <a href="{% url 'book_list' %}" class="text-brut-black font-bold border-b-2 border-brut-black hover:text-purple-700 hover:border-purple-700 transition-colors pb-0.5">Показать все</a>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for book in books %}
+        <!-- Card -->
+        <div class="bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all cursor-pointer flex flex-col h-full">
+            <a href="{% url 'book_detail' book.slug %}">
+                <div class="bg-gray-200 h-48 rounded-lg border-2 border-brut-black mb-4 overflow-hidden relative">
+                    {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" class="w-full h-full object-cover" alt="{{ book.title }}">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <i class="fas fa-book text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                    
+                    {% if book.match_percentage > 90 %}
+                        <div class="absolute top-2 right-2 bg-white border-2 border-brut-black px-2 py-0.5 rounded text-xs font-bold">{{ book.match_percentage }}% match</div>
+                    {% endif %}
+                    {% if book.is_new %}
+                        <div class="absolute top-2 left-2 bg-soft-lime border-2 border-brut-black px-2 py-0.5 rounded text-xs font-bold">New</div>
+                    {% endif %}
+                </div>
+            </a>
+            
+            <h4 class="font-bold text-lg leading-tight mb-1">{{ book.title|truncatechars:30 }}</h4>
+            <p class="text-sm text-gray-500 mb-3">{{ book.author }}</p>
+            
+            <div class="mt-auto flex gap-2">
+                {% if user.is_authenticated %}
+                    {% if user_book_statuses and user_book_statuses.book.id == book.id %}
+                        {% if user_book_statuses.book.id.status == 'reading' %}
+                            <button class="book-status-btn flex-1 bg-brut-black text-white py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-soft-lime hover:text-brut-black transition-colors"
+                                    data-book-id="{{ book.id }}" data-status="reading">
+                                Читаю
+                            </button>
+                        {% else %}
+                            <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
+                                    data-book-id="{{ book.id }}" data-status="planned">
+                                В планы
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
+                                data-book-id="{{ book.id }}" data-status="planned">
+                            В планы
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <a href="/admin/login/" class="flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors text-center">
+                        В планы
+                    </a>
+                {% endif %}
+                
+                <button class="px-3 border-2 border-brut-black rounded hover:bg-soft-pink transition-colors">
+                    <i class="fa-regular fa-bookmark"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Info Block -->
+        <div class="bg-soft-lime border-2 border-brut-black rounded-xl p-6 shadow-hard flex flex-col justify-between relative overflow-hidden group">
+            <i class="fa-solid fa-robot absolute -bottom-6 -right-6 text-8xl opacity-10 group-hover:rotate-12 transition-transform"></i>
+            <div>
+                <h4 class="font-display font-bold text-2xl mb-4">Настрой свой поток</h4>
+                <p class="text-sm font-medium mb-4">Пройди короткий тест, чтобы улучшить рекомендации.</p>
+            </div>
+            <a href="{% url 'recommendation_quiz' %}" class="w-full bg-white border-2 border-brut-black py-3 rounded-lg font-bold shadow-hard hover:shadow-hard-hover active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all text-center">
+                Пройти тест
+            </a>
+        </div>
+    </div>
+</section>
