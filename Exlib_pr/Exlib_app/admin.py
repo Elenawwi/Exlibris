@@ -3,8 +3,21 @@ from django.utils.html import format_html
 from .models import (
     MarqueeMessage, Book, Audiobook, ForumGroup, 
     ForumPost, ReadingChallenge, UserProfile, 
-    UserBookStatus, RecommendationQuiz, QuizOption
+    UserBookStatus, RecommendationQuiz, QuizOption,
+    Genre, Author
 )
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug']
+    search_fields = ['name']
+    prepopulated_fields = {'slug': ('name',)}
+
+@admin.register(Author)
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ['name', 'slug']
+    search_fields = ['name']
+    prepopulated_fields = {'slug': ('name',)}
 
 @admin.register(MarqueeMessage)
 class MarqueeMessageAdmin(admin.ModelAdmin):
@@ -17,26 +30,34 @@ class MarqueeMessageAdmin(admin.ModelAdmin):
 class BookAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'genre', 'match_percentage', 'is_new', 'created_at']
     list_filter = ['genre', 'is_new', 'created_at']
-    search_fields = ['title', 'author']
+    search_fields = ['title', 'author__name']
     prepopulated_fields = {'slug': ('title',)}
+    list_per_page = 20
     
     def cover_preview(self, obj):
         if obj.cover_image:
-            return format_html('<img src="{}" width="100" />', obj.cover_image.url)
+            return format_html('<img src="{}" width="100" style="height:150px;object-fit:cover;" />', obj.cover_image.url)
         return "-"
     cover_preview.short_description = "Превью обложки"
 
 @admin.register(Audiobook)
 class AudiobookAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'duration_display', 'is_featured', 'order']
-    list_editable = ['is_featured', 'order']
+    list_display = ['title', 'author', 'duration_display', 'is_featured', 'cover_preview']
+    list_editable = ['is_featured']
     list_filter = ['is_featured']
-    search_fields = ['title', 'author']
+    search_fields = ['title', 'author__name']
     prepopulated_fields = {'slug': ('title',)}
+    list_per_page = 20
     
     def duration_display(self, obj):
         return obj.duration_display()
     duration_display.short_description = "Длительность"
+    
+    def cover_preview(self, obj):
+        if obj.cover_image:
+            return format_html('<img src="{}" width="100" style="height:150px;object-fit:cover;" />', obj.cover_image.url)
+        return "-"
+    cover_preview.short_description = "Превью обложки"
 
 @admin.register(ForumGroup)
 class ForumGroupAdmin(admin.ModelAdmin):
@@ -54,8 +75,12 @@ class ForumPostAdmin(admin.ModelAdmin):
 
 @admin.register(ReadingChallenge)
 class ReadingChallengeAdmin(admin.ModelAdmin):
-    list_display = ['year', 'goal', 'current', 'progress_percentage', 'is_active']
+    list_display = ['year', 'goal', 'current', 'progress_percentage_int', 'is_active']
     list_editable = ['goal', 'current', 'is_active']
+    
+    def progress_percentage_int(self, obj):
+        return f"{obj.progress_percentage()}%"
+    progress_percentage_int.short_description = "Прогресс"
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):

@@ -1,36 +1,173 @@
 {% extends 'Exlib_app/base.html' %}
 
-{% block title %}Каталог книг | Экслибрис{% endblock %}
-
 {% block content %}
-<section class="p-8 lg:p-12 bg-white min-h-screen">
-    <div class="mb-8">
-        <h1 class="font-display text-4xl font-extrabold mb-4">Каталог книг</h1>
-        <div class="flex flex-col md:flex-row justify-between gap-4">
-            <div class="flex gap-2">
-                <a href="?genre=all" class="px-4 py-2 border-2 border-brut-black rounded-lg {% if not request.GET.genre or request.GET.genre == 'all' %}bg-brut-black text-white{% endif %}">Все</a>
-                <a href="?genre=fiction" class="px-4 py-2 border-2 border-brut-black rounded-lg {% if request.GET.genre == 'fiction' %}bg-brut-black text-white{% endif %}">Художественная</a>
-                <a href="?genre=fantasy" class="px-4 py-2 border-2 border-brut-black rounded-lg {% if request.GET.genre == 'fantasy' %}bg-brut-black text-white{% endif %}">Фантастика</a>
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl py-8">
+    
+    <!-- Заголовок и поиск -->
+    <div class="mb-12">
+        <h1 class="font-display font-extrabold text-4xl mb-2">КАТАЛОГ КНИГ</h1>
+        <p class="text-gray-600 mb-8">Найдено книг: <span class="font-bold">{{ books.count }}</span></p>
+        
+        <!-- Поиск -->
+        <form method="get" class="mb-8">
+            <div class="relative max-w-2xl">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query|default:'' }}"
+                       placeholder="Поиск по названию, автору..." 
+                       class="w-full border-2 border-brut-black px-6 py-4 pr-12 rounded-xl focus:outline-none focus:border-purple-600">
+                <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <i class="fa-solid fa-magnifying-glass text-xl text-gray-500"></i>
+                </button>
             </div>
-            <form class="flex gap-2">
-                <input type="text" name="search" placeholder="Поиск книг..." class="border-2 border-brut-black px-4 py-2 rounded-lg">
-                <button type="submit" class="bg-brut-black text-white px-4 py-2 rounded-lg border-2 border-brut-black">Найти</button>
-            </form>
-        </div>
+        </form>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {% for book in books %}
-        <div class="bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover transition-all">
-            <!-- Карточка книги (по аналогии с partials/recommendations.html) -->
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Фильтры -->
+        <div class="lg:w-1/4">
+            <div class="bg-white border-2 border-brut-black rounded-xl p-6 mb-6 shadow-hard sticky top-24">
+                <h3 class="font-bold text-lg mb-4">Фильтры</h3>
+                
+                <!-- Жанры -->
+                <div class="mb-6">
+                    <h4 class="font-bold mb-2 text-sm uppercase text-gray-500">Жанры</h4>
+                    <div class="space-y-1">
+                        <a href="{% url 'book_list' %}{% if search_query %}?search={{ search_query }}{% endif %}"
+                           class="block px-3 py-2 rounded {% if not selected_genre %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
+                            Все жанры
+                        </a>
+                        {% for genre in genres %}
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}genre={{ genre.id }}{% if selected_author %}&author={{ selected_author }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                           class="block px-3 py-2 rounded {% if selected_genre == genre.id|stringformat:'i' %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
+                            {{ genre.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Авторы -->
+                <div class="mb-6">
+                    <h4 class="font-bold mb-2 text-sm uppercase text-gray-500">Авторы</h4>
+                    <div class="space-y-1">
+                        <a href="{% url 'book_list' %}{% if search_query %}?search={{ search_query }}{% endif %}"
+                           class="block px-3 py-2 rounded {% if not selected_author %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
+                            Все авторы
+                        </a>
+                        {% for author in authors %}
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_genre %}genre={{ selected_genre }}{% else %}&{% endif %}author={{ author.id }}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                           class="block px-3 py-2 rounded {% if selected_author == author.id|stringformat:'i' %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
+                            {{ author.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Сортировка -->
+                <div>
+                    <h4 class="font-bold mb-2 text-sm uppercase text-gray-500">Сортировка</h4>
+                    <select class="sort-select w-full border-2 border-brut-black px-3 py-2 rounded">
+                        <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>
+                            Сначала новые
+                        </option>
+                        <option value="-match_percentage" {% if sort_by == '-match_percentage' %}selected{% endif %}>
+                            По релевантности
+                        </option>
+                        <option value="title" {% if sort_by == 'title' %}selected{% endif %}>
+                            По названию (А-Я)
+                        </option>
+                        <option value="-title" {% if sort_by == '-title' %}selected{% endif %}>
+                            По названию (Я-А)
+                        </option>
+                    </select>
+                </div>
+            </div>
         </div>
-        {% empty %}
-        <div class="col-span-full text-center py-12">
-            <i class="fas fa-book text-6xl text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-bold mb-2">Книги не найдены</h3>
-            <p class="text-gray-600">Попробуйте изменить параметры поиска</p>
+        
+        <!-- Книги -->
+        <div class="lg:w-3/4">
+            {% if books %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for book in books %}
+                <div class="book-card bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover transition-all">
+                    <a href="{% url 'book_detail' book.slug %}">
+                        <div class="cover-container mb-4">
+                            <div class="aspect-[2/3] bg-gray-200 rounded-lg border-2 border-brut-black overflow-hidden">
+                                {% if book.cover_image %}
+                                    <img src="{{ book.cover_image.url }}" 
+                                         alt="{{ book.title }}"
+                                         class="book-cover w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center">
+                                        <i class="fas fa-book text-4xl text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% if book.match_percentage > 90 %}
+                                <div class="absolute top-2 right-2 bg-white border-2 border-brut-black px-2 py-0.5 rounded text-xs font-bold">
+                                    {{ book.match_percentage }}%
+                                </div>
+                            {% endif %}
+                            {% if book.is_new %}
+                                <div class="absolute top-2 left-2 bg-soft-lime border-2 border-brut-black px-2 py-0.5 rounded text-xs font-bold">
+                                    New
+                                </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                    
+                    <h4 class="font-bold text-lg mb-1 truncate">{{ book.title }}</h4>
+                    <p class="text-sm text-gray-500 mb-2">{{ book.author.name }}</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        {% if book.genre %}
+                        <span class="text-xs bg-gray-100 px-2 py-1 rounded">{{ book.genre.name }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        {% if user.is_authenticated %}
+                            {% with user_book_statuses|default:'' as statuses %}
+                                {% if book.id in statuses %}
+                                    {% if statuses|get_item:book.id == 'reading' %}
+                                        <button class="book-status-btn flex-1 bg-brut-black text-white py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-soft-lime hover:text-brut-black transition-colors"
+                                                data-book-id="{{ book.id }}" data-status="reading">
+                                            Читаю
+                                        </button>
+                                    {% else %}
+                                        <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
+                                                data-book-id="{{ book.id }}" data-status="planned">
+                                            В планы
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
+                                            data-book-id="{{ book.id }}" data-status="planned">
+                                        В планы
+                                    </button>
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            <a href="/admin/login/" class="flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors text-center">
+                                В планы
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white border-2 border-brut-black rounded-xl p-12 text-center">
+                <i class="fas fa-book-open text-5xl text-gray-400 mb-4"></i>
+                <h3 class="font-bold text-xl mb-2">Книги не найдены</h3>
+                <p class="text-gray-600 mb-6">Попробуйте изменить параметры поиска</p>
+                <a href="{% url 'book_list' %}" class="inline-block bg-brut-black text-white px-6 py-3 rounded-lg border-2 border-brut-black hover:bg-soft-lime hover:text-brut-black transition-colors">
+                    Сбросить фильтры
+                </a>
+            </div>
+            {% endif %}
         </div>
-        {% endfor %}
     </div>
-</section>
+</div>
 {% endblock %}

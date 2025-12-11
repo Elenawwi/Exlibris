@@ -1,25 +1,20 @@
 <section class="p-8 lg:p-16 bg-white border-b-2 border-brut-black">
-    <div class="text-center mb-12 relative">
-        <h2 class="font-display text-4xl font-extrabold relative z-10 inline-block">
-            ФОРУМ
-            <svg class="absolute w-full h-4 -bottom-1 left-0 text-soft-pink z-[-1]" viewBox="0 0 100 10" preserveAspectRatio="none">
-                <path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" />
-            </svg>
-        </h2>
-        <p class="mt-4 text-gray-600">Дискуссии, челленджи и живое общение</p>
+    <div class="text-center mb-12">
+        <h2 class="font-display text-4xl font-extrabold mb-4">ФОРУМ</h2>
+        <p class="text-gray-600">Дискуссии, челленджи и живое общение</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 h-auto md:h-[500px]">
         
-        <!-- Groups & Interests (Large block) -->
-        <div class="md:col-span-2 md:row-span-2 bg-soft-blue border-2 border-brut-black rounded-2xl p-6 shadow-hard relative overflow-hidden group hover:shadow-hard-deep transition-all">
+        <!-- Группы -->
+        <div class="md:col-span-2 md:row-span-2 bg-soft-blue border-2 border-brut-black rounded-2xl p-6 shadow-hard">
             <div class="flex justify-between items-start mb-4">
                 <h3 class="font-display font-bold text-2xl">Группы по интересам</h3>
                 <i class="fa-solid fa-users text-2xl emoji-bw"></i>
             </div>
             <div class="grid grid-cols-2 gap-3">
                 {% for group in forum_groups %}
-                <a href="{% url 'forum' %}?group={{ group.id }}" class="bg-white border-2 border-brut-black p-3 rounded-lg cursor-pointer hover:bg-soft-ylw transition-colors">
+                <a href="{% url 'forum' %}?group={{ group.id }}" class="bg-white border-2 border-brut-black p-3 rounded-lg hover:bg-soft-ylw transition-colors">
                     <div class="font-bold">
                         <i class="{{ group.icon_class }} mr-2"></i>
                         {{ group.name }}
@@ -33,48 +28,37 @@
                 </div>
                 {% endfor %}
             </div>
-            <a href="{% url 'forum' %}" class="absolute bottom-6 right-6 bg-brut-black text-white px-4 py-2 rounded-lg font-bold text-sm border-2 border-brut-black hover:bg-white hover:text-brut-black transition-colors">
+            <a href="{% url 'forum' %}" class="mt-6 inline-block bg-brut-black text-white px-4 py-2 rounded-lg font-bold text-sm border-2 border-brut-black hover:bg-white hover:text-brut-black transition-colors">
                 Все группы
             </a>
         </div>
 
-        <!-- Achievements / Marathon -->
-        <div class="bg-soft-pink border-2 border-brut-black rounded-2xl p-5 shadow-hard hover:translate-y-[-4px] transition-transform">
+        <!-- Марафон -->
+        <div class="bg-soft-pink border-2 border-brut-black rounded-2xl p-5 shadow-hard">
             <div class="flex items-center gap-2 mb-2">
                 <i class="fa-solid fa-trophy text-xl emoji-bw"></i>
                 <h3 class="font-bold text-lg">Марафон</h3>
             </div>
             {% if reading_challenge %}
-            <div class="text-sm mb-4 font-medium">Прочитано {{ reading_challenge.current }}/{{ reading_challenge.goal }} книг за {{ reading_challenge.year }} год</div>
+            <div class="text-sm mb-4 font-medium">Прочитано {{ reading_challenge.current }}/{{ reading_challenge.goal }} книг</div>
             
-            <!-- Просто статичная полоса прогресса без вычислений -->
             <div class="w-full bg-white border-2 border-brut-black h-4 rounded-full overflow-hidden mb-2">
-                <div class="progress-bar bg-brut-black h-full"></div>
+                <div class="progress-bar bg-brut-black h-full" style="width: {{ reading_challenge.progress_percentage }}%"></div>
             </div>
             
-            <div class="text-xs text-gray-600 text-right" id="progress-text">0%</div>
+            <div class="text-xs text-gray-600 text-right" id="progress-text">{{ reading_challenge.progress_percentage }}%</div>
             
             <div class="flex gap-1 mt-4">
-                <div class="w-8 h-8 rounded-full border-2 border-brut-black bg-yellow-400 flex items-center justify-center text-xs" title="Новичек">
+                <div class="w-8 h-8 rounded-full border-2 border-brut-black bg-yellow-400 flex items-center justify-center text-xs">
                     <span class="emoji-bw">🏆</span>
                 </div>
-                <div class="w-8 h-8 rounded-full border-2 border-brut-black bg-blue-400 flex items-center justify-center text-xs opacity-50">
-                    <span class="emoji-bw">📚</span>
-                </div>
             </div>
-            
-            <!-- Скрытые данные для JavaScript -->
-            <div id="progress-data" 
-                 data-current="{{ reading_challenge.current }}"
-                 data-goal="{{ reading_challenge.goal }}"
-                 class="hidden"></div>
             {% else %}
             <div class="text-sm mb-4 font-medium">Марафон пока не активен</div>
-            <div class="w-full bg-gray-200 border-2 border-brut-black h-4 rounded-full overflow-hidden mb-2"></div>
             {% endif %}
         </div>
 
-        <!-- Personal Chats -->
+        <!-- Чаты -->
         <div class="bg-white border-2 border-brut-black rounded-2xl p-5 shadow-hard flex flex-col">
             <div class="flex justify-between mb-2">
                 <h3 class="font-bold text-lg">Чаты</h3>
@@ -107,45 +91,21 @@
             </ul>
         </div>
 
-        <!-- Reviews (Wide bottom) -->
-        <div class="md:col-span-2 bg-soft-ylw border-2 border-brut-black rounded-2xl p-5 shadow-hard flex items-center justify-between group cursor-pointer">
+        <!-- Рецензии -->
+        <div class="md:col-span-2 bg-soft-ylw border-2 border-brut-black rounded-2xl p-5 shadow-hard flex items-center justify-between">
             <div>
                 <h3 class="font-bold text-xl mb-1">Рецензии и дискуссии</h3>
-                <p class="text-sm opacity-70">Напиши свою первую рецензию и получи +100 кармы</p>
+                <p class="text-sm opacity-70">Напиши свою первую рецензию</p>
             </div>
             {% if user.is_authenticated %}
-            <a href="{% url 'create_forum_post' %}" class="text-4xl group-hover:rotate-12 transition-transform emoji-bw">
+            <a href="{% url 'create_forum_post' %}" class="text-4xl hover:rotate-12 transition-transform emoji-bw">
                 ✍️
             </a>
             {% else %}
-            <a href="/admin/login/" class="text-4xl group-hover:rotate-12 transition-transform emoji-bw">
+            <a href="/admin/login/" class="text-4xl hover:rotate-12 transition-transform emoji-bw">
                 ✍️
             </a>
             {% endif %}
         </div>
     </div>
 </section>
-
-<script>
-// JavaScript для установки прогресса
-document.addEventListener('DOMContentLoaded', function() {
-    const progressData = document.getElementById('progress-data');
-    if (progressData) {
-        const current = parseInt(progressData.dataset.current);
-        const goal = parseInt(progressData.dataset.goal);
-        
-        if (goal > 0) {
-            const percentage = Math.round((current / goal) * 100);
-            const progressBar = document.querySelector('.progress-bar');
-            const progressText = document.getElementById('progress-text');
-            
-            if (progressBar) {
-                progressBar.style.width = percentage + '%';
-            }
-            if (progressText) {
-                progressText.textContent = percentage + '%';
-            }
-        }
-    }
-});
-</script>

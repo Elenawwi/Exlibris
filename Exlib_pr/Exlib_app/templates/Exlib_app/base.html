@@ -3,105 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Экслибрис | Онлайн Библиотека{% endblock %}</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Tailwind CSS -->
+    <title>ЭКСЛИБРИС - {% block title %}{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Syne', 'sans-serif'],
-                    },
-                    colors: {
-                        'brut-black': '#18181B',
-                        'brut-white': '#FAFAFA',
-                        'soft-lime': '#D9F99D',
-                        'soft-purple': '#DDD6FE',
-                        'soft-pink': '#FBCFE8',
-                        'soft-blue': '#BAE6FD',
-                        'soft-ylw': '#FEF08A',
-                    },
-                    boxShadow: {
-                        'hard': '4px 4px 0px 0px #18181B',
-                        'hard-hover': '2px 2px 0px 0px #18181B',
-                        'hard-deep': '8px 8px 0px 0px #18181B',
-                    },
-                    animation: {
-                        'marquee': 'marquee 25s linear infinite',
-                    }
-                }
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (min-width: 1536px) {
+            .container {
+                max-width: 1536px;
             }
         }
-    </script>
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/style.css">
-    
-    {% block extra_head %}{% endblock %}
+    </style>
 </head>
-<body class="flex justify-center w-full">
-    <div class="w-full max-w-[1440px] bg-brut-white min-h-screen b-raw border-t-0 shadow-2xl relative overflow-hidden mx-auto">
-        
-        <!-- Шапка -->
-        {% include 'Exlib_app/partials/header.html' %}
-        
-        <!-- Бегущая строка -->
-        {% if marquee_messages %}
-        <div class="border-b-2 border-brut-black bg-soft-ylw overflow-hidden py-2 flex whitespace-nowrap">
-            <div class="animate-marquee flex gap-8 font-display font-bold text-lg uppercase tracking-wider">
-                {% for message in marquee_messages %}
-                    <span>✦ {{ message.text }}</span>
-                {% endfor %}
+<body class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Бегущая строка -->
+    {% if marquee_messages %}
+    <div class="bg-brut-black text-white py-2 overflow-hidden">
+        <div class="animate-marquee whitespace-nowrap">
+            {% for message in marquee_messages %}
+            <span class="mx-8 font-bold">{{ message.text }}</span>
+            {% if not forloop.last %}•{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Шапка -->
+    <header class="sticky top-0 z-50 bg-white border-b-2 border-brut-black px-6 py-4">
+        <div class="container flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'index' %}" class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-brut-black text-white flex items-center justify-center rounded-lg shadow-hard">
+                        <i class="fa-solid fa-book-open text-xl"></i>
+                    </div>
+                    <h1 class="font-display font-extrabold text-2xl tracking-tighter text-brut-black">ЭКСЛИБРИС</h1>
+                </a>
+            </div>
+
+            <nav class="hidden md:flex gap-1 bg-white border-2 border-brut-black rounded-full px-2 py-1 shadow-hard">
+                <a href="{% url 'book_list' %}" class="px-4 py-2 rounded-full font-bold hover:bg-soft-lime transition-colors">Каталог</a>
+                <a href="{% url 'audiobook_list' %}" class="px-4 py-2 rounded-full font-bold hover:bg-soft-purple transition-colors">Аудиокниги</a>
+                <a href="{% url 'forum' %}" class="px-4 py-2 rounded-full font-bold hover:bg-soft-pink transition-colors">Форум</a>
+                <a href="{% url 'bookmarks' %}" class="px-4 py-2 rounded-full font-bold hover:bg-soft-blue transition-colors">Закладки</a>
+            </nav>
+
+            <div class="flex items-center gap-4">
+                <form id="search-form" class="relative hidden md:block">
+                    <input type="text" name="q" placeholder="Поиск..." 
+                           class="border-2 border-brut-black rounded-full px-4 py-2 pr-10 w-48 focus:outline-none">
+                    <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <i class="fa-solid fa-magnifying-glass text-gray-500"></i>
+                    </button>
+                </form>
+                
+                {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="flex items-center gap-2 border-2 border-brut-black px-3 py-1.5 rounded-lg bg-white shadow-hard">
+                    <div class="w-6 h-6 bg-soft-lime rounded-full border border-brut-black overflow-hidden">
+                        {% if user.userprofile.avatar %}
+                            <img src="{{ user.userprofile.avatar.url }}" alt="Avatar" class="object-cover w-full h-full">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-xs font-bold">
+                                {{ user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <span class="font-bold text-sm">{{ user.username }}</span>
+                </a>
+                {% else %}
+                <a href="/admin/login/" class="border-2 border-brut-black px-4 py-2 rounded-lg bg-white shadow-hard hover:bg-soft-lime transition-colors font-bold text-sm">
+                    Войти
+                </a>
+                {% endif %}
             </div>
         </div>
-        {% endif %}
-        
-        <!-- Основное содержание -->
-        <main>
+    </header>
+    
+    <!-- Основное содержимое -->
+    <main class="flex-grow">
+        <div class="container px-4 lg:px-8">
             {% block content %}{% endblock %}
-        </main>
-        
-        <!-- Подвал -->
-        {% include 'Exlib_app/partials/footer.html' %}
-        
-    </div>
+        </div>
+    </main>
     
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Подвал -->
+    <footer class="bg-brut-black text-white pt-12 pb-8 border-t-2 border-brut-black mt-12">
+        <div class="container px-8 lg:px-16">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-2 mb-6">
+                        <i class="fa-solid fa-book-open text-2xl text-soft-lime"></i>
+                        <span class="font-display font-bold text-3xl tracking-tighter">ЭКСЛИБРИС</span>
+                    </div>
+                    <p class="max-w-sm text-gray-400 mb-6">
+                        Онлайн-пространство для тех, кто живет в книгах.
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4 text-soft-lime">Навигация</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="{% url 'book_list' %}" class="hover:text-white transition-colors">Каталог книг</a></li>
+                        <li><a href="{% url 'audiobook_list' %}" class="hover:text-white transition-colors">Аудиокниги</a></li>
+                        <li><a href="{% url 'forum' %}" class="hover:text-white transition-colors">Форум</a></li>
+                        <li><a href="{% url 'about' %}" class="hover:text-white transition-colors">О проекте</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold text-lg mb-4 text-soft-lime">Аккаунт</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'profile' %}" class="hover:text-white transition-colors">Мой профиль</a></li>
+                        <li><a href="{% url 'bookmarks' %}" class="hover:text-white transition-colors">Закладки</a></li>
+                        <li><a href="/admin/logout/" class="hover:text-white transition-colors">Выйти</a></li>
+                        {% else %}
+                        <li><a href="/admin/login/" class="hover:text-white transition-colors">Войти</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+                <p>&copy; 2024 ЭКСЛИБРИС. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
     
-    <!-- Custom JavaScript -->
-    <script src="/static/js/main.js"></script>
+    <!-- CSRF токен для AJAX -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     
-    <!-- CSRF Token для AJAX -->
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        const csrftoken = getCookie('csrftoken');
-    </script>
-    
-    {% block extra_scripts %}{% endblock %}
+    <!-- JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

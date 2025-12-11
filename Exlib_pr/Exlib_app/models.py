@@ -3,6 +3,41 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
 
+class Genre(models.Model):
+    """Модель жанра"""
+    name = models.CharField(max_length=100, verbose_name="Название жанра")
+    slug = models.SlugField(unique=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Жанр"
+        verbose_name_plural = "Жанры"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+
+class Author(models.Model):
+    """Модель автора"""
+    name = models.CharField(max_length=200, verbose_name="Имя автора")
+    bio = models.TextField(blank=True, verbose_name="Биография")
+    slug = models.SlugField(unique=True, blank=True)
+    
+    class Meta:
+        verbose_name = "Автор"
+        verbose_name_plural = "Авторы"
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
+
 class MarqueeMessage(models.Model):
     """Модель для бегущей строки"""
     text = models.CharField(max_length=200, verbose_name="Текст сообщения")
@@ -20,20 +55,18 @@ class MarqueeMessage(models.Model):
 
 class Book(models.Model):
     """Модель книги"""
-    GENRE_CHOICES = [
-        ('fiction', 'Художественная литература'),
-        ('fantasy', 'Фантастика'),
-        ('detective', 'Детектив'),
-        ('scifi', 'Научная фантастика'),
-        ('classic', 'Классика'),
-        ('nonfiction', 'Нехудожественная литература'),
-    ]
+    # Сначала оставим старое поле как резервное
+    old_genre = models.CharField(max_length=50, blank=True, null=True, verbose_name="Старый жанр (временное)")
     
     title = models.CharField(max_length=200, verbose_name="Название")
-    author = models.CharField(max_length=100, verbose_name="Автор")
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, verbose_name="Автор")
     description = models.TextField(verbose_name="Описание")
-    genre = models.CharField(max_length=50, choices=GENRE_CHOICES, verbose_name="Жанр")
-    cover_image = models.ImageField(upload_to='book_covers/', verbose_name="Обложка")
+    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Жанр")
+    cover_image = models.ImageField(
+        upload_to='book_covers/', 
+        verbose_name="Обложка",
+        help_text="Рекомендуемый размер: 600x900px"
+    )
     match_percentage = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(100)],
         default=0,
@@ -42,7 +75,6 @@ class Book(models.Model):
     is_new = models.BooleanField(default=False, verbose_name="Новая")
     slug = models.SlugField(unique=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Книга"
@@ -55,22 +87,22 @@ class Book(models.Model):
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.title} - {self.author}"
+        return f"{self.title} - {self.author.name}"
 
 class Audiobook(models.Model):
     """Модель аудиокниги"""
     title = models.CharField(max_length=200, verbose_name="Название")
-    author = models.CharField(max_length=100, verbose_name="Автор")
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, verbose_name="Автор")
     duration = models.DurationField(verbose_name="Длительность")
     cover_image = models.ImageField(upload_to='audiobook_covers/', verbose_name="Обложка")
     is_featured = models.BooleanField(default=False, verbose_name="Рекомендуемая")
-    order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
+    order = models.PositiveIntegerField(default=0, verbose_name="Порядок")  # Добавьте это поле
     slug = models.SlugField(unique=True, blank=True)
     
     class Meta:
         verbose_name = "Аудиокнига"
         verbose_name_plural = "Аудиокниги"
-        ordering = ['order']
+        ordering = ['order']  # И добавьте ordering если нужно
     
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -78,7 +110,6 @@ class Audiobook(models.Model):
         super().save(*args, **kwargs)
     
     def duration_display(self):
-        """Отображение длительности в формате ЧЧ:ММ:СС"""
         if self.duration:
             total_seconds = int(self.duration.total_seconds())
             hours = total_seconds // 3600
@@ -91,11 +122,10 @@ class Audiobook(models.Model):
         return self.title
 
 class ForumGroup(models.Model):
-    """Модель группы на форуме"""
     name = models.CharField(max_length=100, verbose_name="Название группы")
     description = models.TextField(verbose_name="Описание")
     members_count = models.PositiveIntegerField(default=0, verbose_name="Количество участников")
-    icon_class = models.CharField(max_length=50, verbose_name="Класс иконки", help_text="Например: fa-solid fa-users")
+    icon_class = models.CharField(max_length=50, verbose_name="Класс иконки")
     color_class = models.CharField(max_length=50, default="bg-white", verbose_name="Класс цвета")
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
     
@@ -108,7 +138,6 @@ class ForumGroup(models.Model):
         return self.name
 
 class ForumPost(models.Model):
-    """Модель поста на форуме"""
     CATEGORY_CHOICES = [
         ('review', 'Рецензия'),
         ('discussion', 'Обсуждение'),
@@ -125,7 +154,6 @@ class ForumPost(models.Model):
     views = models.PositiveIntegerField(default=0, verbose_name="Просмотры")
     is_pinned = models.BooleanField(default=False, verbose_name="Закреплено")
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Пост форума"
@@ -136,9 +164,8 @@ class ForumPost(models.Model):
         return self.title
 
 class ReadingChallenge(models.Model):
-    """Модель книжного марафона"""
     year = models.PositiveIntegerField(verbose_name="Год")
-    goal = models.PositiveIntegerField(verbose_name="Цель (количество книг)")
+    goal = models.PositiveIntegerField(verbose_name="Цель (книг)")
     current = models.PositiveIntegerField(default=0, verbose_name="Текущий прогресс")
     is_active = models.BooleanField(default=True, verbose_name="Активен")
     
@@ -149,24 +176,16 @@ class ReadingChallenge(models.Model):
     def __str__(self):
         return f"Марафон {self.year}"
     
-    def progress_percentage_int(self):
-        """Процент выполнения марафона как целое число"""
+    def progress_percentage(self):
         if self.goal == 0:
             return 0
         return int((self.current / self.goal) * 100)
-    
-    def progress_percentage(self):
-        """Процент выполнения марафона"""
-        if self.goal == 0:
-            return 0
-        return (self.current / self.goal) * 100
 
 class UserProfile(models.Model):
-    """Расширенный профиль пользователя"""
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Аватар")
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     reading_challenge = models.ForeignKey(ReadingChallenge, on_delete=models.SET_NULL, null=True, blank=True)
-    karma = models.IntegerField(default=0, verbose_name="Карма")
+    karma = models.IntegerField(default=0)
     
     class Meta:
         verbose_name = "Профиль пользователя"
@@ -176,7 +195,6 @@ class UserProfile(models.Model):
         return self.user.username
 
 class UserBookStatus(models.Model):
-    """Статус книги у пользователя"""
     STATUS_CHOICES = [
         ('reading', 'Читаю'),
         ('planned', 'В планах'),
@@ -198,7 +216,6 @@ class UserBookStatus(models.Model):
         return f"{self.user.username} - {self.book.title} ({self.status})"
 
 class RecommendationQuiz(models.Model):
-    """Вопросы для теста рекомендаций"""
     question = models.TextField(verbose_name="Вопрос")
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
     
@@ -211,10 +228,9 @@ class RecommendationQuiz(models.Model):
         return self.question[:50]
 
 class QuizOption(models.Model):
-    """Варианты ответов для теста"""
     quiz = models.ForeignKey(RecommendationQuiz, on_delete=models.CASCADE, related_name='options')
     text = models.CharField(max_length=200, verbose_name="Текст ответа")
-    genre_weights = models.JSONField(verbose_name="Веса жанров", help_text="JSON с весами для жанров")
+    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, blank=True)
     
     class Meta:
         verbose_name = "Вариант ответа"

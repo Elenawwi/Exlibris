@@ -1,4 +1,39 @@
-/* Custom Marquee Animation */
+/* Custom styles */
+.container {
+    max-width: 100%;
+}
+
+@media (min-width: 640px) {
+    .container {
+        max-width: 640px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 768px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 1024px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .container {
+        max-width: 1280px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .container {
+        max-width: 1536px;
+    }
+}
+
+/* Marquee */
 @keyframes marquee {
     0% { transform: translateX(0%); }
     100% { transform: translateX(-100%); }
@@ -7,103 +42,103 @@
     animation: marquee 30s linear infinite;
 }
 
-/* Custom Scrollbar */
+/* Book covers - вертикальная ориентация */
+.aspect-\[2\/3\] {
+    aspect-ratio: 2/3;
+}
+
+.book-cover, .audiobook-cover {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+/* Shadows */
+.shadow-hard {
+    box-shadow: 6px 6px 0px #18181B;
+}
+
+.shadow-hard-hover:hover {
+    box-shadow: 8px 8px 0px #18181B;
+}
+
+/* Colors */
+.bg-brut-black {
+    background-color: #18181B;
+}
+.text-brut-black {
+    color: #18181B;
+}
+.border-brut-black {
+    border-color: #18181B;
+}
+
+.bg-soft-lime {
+    background-color: #D9F99D;
+}
+.bg-soft-blue {
+    background-color: #BFDBFE;
+}
+.bg-soft-pink {
+    background-color: #FBCFE8;
+}
+.bg-soft-purple {
+    background-color: #E9D5FF;
+}
+.bg-soft-ylw {
+    background-color: #FEF08A;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Progress bar */
+.progress-bar {
+    transition: width 0.5s ease;
+}
+
+/* Emoji filter */
+.emoji-bw {
+    filter: grayscale(100%) contrast(150%);
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 12px;
+    width: 10px;
 }
 ::-webkit-scrollbar-track {
-    background: #ffffff;
+    background: #f1f1f1;
     border-left: 2px solid #18181B;
 }
 ::-webkit-scrollbar-thumb {
     background: #18181B;
     border: 2px solid #18181B;
-    border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
 
-body {
-    background-color: #f3f4f6;
-    color: #18181B;
-}
-
-/* Utility for raw borders */
-.b-raw {
-    border: 2px solid #18181B;
-}
-
-/* Filter for black and white emojis */
-.emoji-bw {
-    filter: grayscale(100%) contrast(150%);
-}
-
-/* Hide scrollbar for horizontal lists */
+/* No scrollbar for horizontal lists */
 .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
     display: none;
-}
-
-/* Loading animation */
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Book cover hover effects */
-.book-cover {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.book-cover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-/* Form styles */
-.form-input {
-    border: 2px solid #18181B;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-family: 'Inter', sans-serif;
-}
-.form-input:focus {
-    outline: none;
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-}
-
-/* Alert messages */
-.alert {
-    padding: 12px 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border: 2px solid;
-}
-.alert-success {
-    background-color: #d1fae5;
-    border-color: #10b981;
-    color: #065f46;
-}
-.alert-error {
-    background-color: #fee2e2;
-    border-color: #ef4444;
-    color: #991b1b;
-}
-.alert-info {
-    background-color: #dbeafe;
-    border-color: #3b82f6;
-    color: #1e40af;
 }
