@@ -1,0 +1,169 @@
+{% extends 'Exlib_app/base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl py-8">
+    
+    <!-- Заголовок и описание -->
+    <div class="mb-12">
+        <h1 class="font-display font-extrabold text-4xl mb-2">АУДИОКНИГИ</h1>
+        <p class="text-gray-600 mb-8">Погружайтесь в истории с помощью профессионального озвучивания</p>
+        
+        <!-- Быстрый поиск -->
+        <form method="get" class="mb-8">
+            <div class="relative max-w-2xl">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query|default:'' }}"
+                       placeholder="Поиск аудиокниг..." 
+                       class="w-full border-2 border-brut-black px-6 py-4 pr-12 rounded-xl focus:outline-none focus:border-purple-600">
+                <button type="submit" class="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <i class="fa-solid fa-headphones text-xl text-gray-500"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Featured Audiobook -->
+    {% if audiobooks and audiobooks|length > 0 %}
+    <div class="mb-12 bg-brut-black text-white p-8 rounded-2xl border-2 border-brut-black">
+        <div class="flex flex-col lg:flex-row items-center gap-8">
+            <div class="lg:w-1/3">
+                <div class="aspect-square bg-gray-800 rounded-xl border-2 border-white/20 overflow-hidden">
+                    {% if audiobooks.0.cover_image %}
+                        <img src="{{ audiobooks.0.cover_image.url }}" 
+                             alt="{{ audiobooks.0.title }}"
+                             class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <i class="fas fa-headphones text-6xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="lg:w-2/3">
+                <span class="inline-block px-3 py-1 bg-white text-brut-black text-xs font-bold uppercase rounded mb-4">
+                    Рекомендуем
+                </span>
+                <h2 class="font-display font-bold text-3xl mb-4">{{ audiobooks.0.title }}</h2>
+                <p class="text-gray-300 mb-6">{{ audiobooks.0.author.name }}</p>
+                <div class="flex items-center gap-4 mb-6">
+                    <span class="text-sm">
+                        <i class="fa-regular fa-clock mr-2"></i>
+                        {{ audiobooks.0.duration_display }}
+                    </span>
+                    {% if audiobooks.0.is_featured %}
+                    <span class="text-sm bg-soft-lime text-brut-black px-3 py-1 rounded font-bold">
+                        <i class="fa-solid fa-star mr-1"></i> Избранное
+                    </span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'audiobook_detail' audiobooks.0.slug %}" 
+                   class="inline-flex items-center gap-2 bg-white text-brut-black px-6 py-3 rounded-lg font-bold border-2 border-brut-black hover:bg-soft-lime transition-colors">
+                    <i class="fa-solid fa-play"></i>
+                    Слушать сейчас
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Все аудиокниги -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-2xl">Все аудиокниги</h3>
+            <span class="text-gray-600">Показано: {{ audiobooks|length }}</span>
+        </div>
+        
+        {% if audiobooks %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for audiobook in audiobooks %}
+            <div class="bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover transition-all">
+                <a href="{% url 'audiobook_detail' audiobook.slug %}">
+                    <div class="aspect-square bg-gray-200 rounded-lg border-2 border-brut-black overflow-hidden mb-4 relative">
+                        {% if audiobook.cover_image %}
+                            <img src="{{ audiobook.cover_image.url }}" 
+                                 alt="{{ audiobook.title }}"
+                                 class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="fas fa-headphones text-4xl text-gray-400"></i>
+                            </div>
+                        {% endif %}
+                        <div class="absolute bottom-2 right-2 bg-white/90 border-2 border-brut-black px-2 py-1 rounded text-xs font-bold">
+                            {{ audiobook.duration_display }}
+                        </div>
+                        {% if audiobook.is_featured %}
+                        <div class="absolute top-2 left-2 bg-soft-lime border-2 border-brut-black px-2 py-0.5 rounded text-xs font-bold">
+                            <i class="fa-solid fa-star mr-1"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+                
+                <h4 class="font-bold text-lg mb-1 truncate">{{ audiobook.title }}</h4>
+                <p class="text-sm text-gray-500 mb-3">{{ audiobook.author.name }}</p>
+                
+                <div class="flex justify-between items-center">
+                    <span class="text-xs text-gray-500">
+                        <i class="fa-regular fa-clock mr-1"></i>
+                        {{ audiobook.duration_display }}
+                    </span>
+                    <a href="{% url 'audiobook_detail' audiobook.slug %}" 
+                       class="text-xs bg-brut-black text-white px-3 py-1.5 rounded border-2 border-brut-black hover:bg-soft-lime hover:text-brut-black transition-colors font-bold">
+                        <i class="fa-solid fa-play mr-1"></i> Слушать
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white border-2 border-brut-black rounded-xl p-12 text-center">
+            <i class="fas fa-headphones text-5xl text-gray-400 mb-4"></i>
+            <h3 class="font-bold text-xl mb-2">Аудиокниги не найдены</h3>
+            <p class="text-gray-600 mb-6">Пока в каталоге нет аудиокниг</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Категории (жанры) -->
+    <div class="mt-12">
+        <h3 class="font-bold text-2xl mb-6">Популярные жанры</h3>
+        <div class="flex flex-wrap gap-3">
+            {% for genre in genres %}
+            <a href="?genre={{ genre.id }}" 
+               class="px-4 py-2 bg-white border-2 border-brut-black rounded-lg hover:bg-soft-purple transition-colors font-medium">
+                {{ genre.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Как слушать аудиокниги -->
+    <div class="mt-12 bg-soft-blue border-2 border-brut-black rounded-xl p-8">
+        <h3 class="font-bold text-2xl mb-4">Как слушать аудиокниги?</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white border-2 border-brut-black rounded-full flex items-center justify-center text-2xl mb-4 mx-auto">
+                    <i class="fa-solid fa-mobile-screen"></i>
+                </div>
+                <h4 class="font-bold mb-2">На телефоне</h4>
+                <p class="text-sm text-gray-600">Слушайте в приложении или браузере</p>
+            </div>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white border-2 border-brut-black rounded-full flex items-center justify-center text-2xl mb-4 mx-auto">
+                    <i class="fa-solid fa-laptop"></i>
+                </div>
+                <h4 class="font-bold mb-2">На компьютере</h4>
+                <p class="text-sm text-gray-600">Прямо в браузере без установки</p>
+            </div>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-white border-2 border-brut-black rounded-full flex items-center justify-center text-2xl mb-4 mx-auto">
+                    <i class="fa-solid fa-download"></i>
+                </div>
+                <h4 class="font-bold mb-2">Оффлайн</h4>
+                <p class="text-sm text-gray-600">Скачайте и слушайте без интернета</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

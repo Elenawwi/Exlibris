@@ -1,0 +1,211 @@
+{% extends 'Exlib_app/base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl py-8">
+    
+    <!-- Заголовок и статистика -->
+    <div class="mb-12">
+        <h1 class="font-display font-extrabold text-4xl mb-2">ЗАКЛАДКИ</h1>
+        
+        {% if user.is_authenticated %}
+        <div class="flex flex-wrap gap-6 mt-6">
+            <div class="bg-white border-2 border-brut-black rounded-xl p-4 min-w-[180px]">
+                <div class="text-3xl font-bold mb-1 text-center">
+                    {{ total_books|default:0 }}
+                </div>
+                <div class="text-sm text-gray-600 text-center">Всего книг</div>
+            </div>
+            <div class="bg-white border-2 border-brut-black rounded-xl p-4 min-w-[180px]">
+                <div class="text-3xl font-bold mb-1 text-center text-green-600">
+                    {{ reading_count|default:0 }}
+                </div>
+                <div class="text-sm text-gray-600 text-center">Читаю сейчас</div>
+            </div>
+            <div class="bg-white border-2 border-brut-black rounded-xl p-4 min-w-[180px]">
+                <div class="text-3xl font-bold mb-1 text-center text-blue-600">
+                    {{ planned_count|default:0 }}
+                </div>
+                <div class="text-sm text-gray-600 text-center">В планах</div>
+            </div>
+            <div class="bg-white border-2 border-brut-black rounded-xl p-4 min-w-[180px]">
+                <div class="text-3xl font-bold mb-1 text-center text-purple-600">
+                    {{ read_count|default:0 }}
+                </div>
+                <div class="text-sm text-gray-600 text-center">Прочитано</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if user.is_authenticated %}
+    <!-- Фильтры -->
+    <div class="mb-8">
+        <div class="bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard">
+            <h3 class="font-bold mb-4">Фильтровать по статусу:</h3>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'bookmarks' %}" 
+                   class="bookmark-filter px-4 py-2 rounded-full border-2 border-brut-black font-bold {% if status_filter == 'all' or not status_filter %}bg-soft-lime{% else %}bg-white hover:bg-gray-100{% endif %} transition-colors"
+                   data-status="all">
+                    Все
+                </a>
+                <a href="?status=reading" 
+                   class="bookmark-filter px-4 py-2 rounded-full border-2 border-brut-black font-bold {% if status_filter == 'reading' %}bg-brut-black text-white{% else %}bg-white hover:bg-gray-100{% endif %} transition-colors"
+                   data-status="reading">
+                    Читаю
+                </a>
+                <a href="?status=planned" 
+                   class="bookmark-filter px-4 py-2 rounded-full border-2 border-brut-black font-bold {% if status_filter == 'planned' %}bg-blue-100 text-blue-800{% else %}bg-white hover:bg-gray-100{% endif %} transition-colors"
+                   data-status="planned">
+                    В планах
+                </a>
+                <a href="?status=read" 
+                   class="bookmark-filter px-4 py-2 rounded-full border-2 border-brut-black font-bold {% if status_filter == 'read' %}bg-purple-100 text-purple-800{% else %}bg-white hover:bg-gray-100{% endif %} transition-colors"
+                   data-status="read">
+                    Прочитано
+                </a>
+                <a href="?status=abandoned" 
+                   class="bookmark-filter px-4 py-2 rounded-full border-2 border-brut-black font-bold {% if status_filter == 'abandoned' %}bg-red-100 text-red-800{% else %}bg-white hover:bg-gray-100{% endif %} transition-colors"
+                   data-status="abandoned">
+                    Брошено
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Книги -->
+    <div>
+        {% if bookmarked_books %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for bookmark in bookmarked_books %}
+            <div class="bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover transition-all">
+                <a href="{% url 'book_detail' bookmark.book.slug %}">
+                    <div class="cover-container mb-4 relative">
+                        <div class="aspect-[2/3] bg-gray-200 rounded-lg border-2 border-brut-black overflow-hidden">
+                            {% if bookmark.book.cover_image %}
+                                <img src="{{ bookmark.book.cover_image.url }}" 
+                                     alt="{{ bookmark.book.title }}"
+                                     class="book-cover w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <i class="fas fa-book text-4xl text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Статус книги -->
+                        <div class="absolute top-2 left-2">
+                            {% if bookmark.status == 'reading' %}
+                            <span class="px-2 py-1 bg-brut-black text-white text-xs font-bold rounded border border-brut-black">
+                                Читаю
+                            </span>
+                            {% elif bookmark.status == 'planned' %}
+                            <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded border border-blue-300">
+                                В планах
+                            </span>
+                            {% elif bookmark.status == 'read' %}
+                            <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded border border-purple-300">
+                                Прочитано
+                            </span>
+                            {% elif bookmark.status == 'abandoned' %}
+                            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded border border-red-300">
+                                Брошено
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if bookmark.book.match_percentage > 90 %}
+                            <div class="absolute top-2 right-2 bg-white border-2 border-brut-black px-2 py-0.5 rounded text-xs font-bold">
+                                {{ bookmark.book.match_percentage }}%
+                            </div>
+                        {% endif %}
+                    </div>
+                </a>
+                
+                <h4 class="font-bold text-lg mb-1 truncate">{{ bookmark.book.title }}</h4>
+                <p class="text-sm text-gray-500 mb-2">{{ bookmark.book.author.name }}</p>
+                
+                <div class="flex items-center justify-between mb-4">
+                    {% if bookmark.book.genre %}
+                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">{{ bookmark.book.genre.name }}</span>
+                    {% endif %}
+                    <span class="text-xs text-gray-500">
+                        <i class="fa-regular fa-calendar mr-1"></i>
+                        {{ bookmark.added_at|date:"d.m.Y" }}
+                    </span>
+                </div>
+                
+                <div class="flex gap-2">
+                    <select class="book-status-select flex-1 border-2 border-brut-black rounded py-2 px-3 text-sm focus:outline-none focus:border-purple-600"
+                            data-book-id="{{ bookmark.book.id }}"
+                            data-current-status="{{ bookmark.status }}">
+                        <option value="planned" {% if bookmark.status == 'planned' %}selected{% endif %}>В планах</option>
+                        <option value="reading" {% if bookmark.status == 'reading' %}selected{% endif %}>Читаю</option>
+                        <option value="read" {% if bookmark.status == 'read' %}selected{% endif %}>Прочитано</option>
+                        <option value="abandoned" {% if bookmark.status == 'abandoned' %}selected{% endif %}>Брошено</option>
+                    </select>
+                    
+                    <button class="remove-bookmark px-3 border-2 border-red-300 text-red-600 rounded hover:bg-red-100 transition-colors"
+                            data-bookmark-id="{{ bookmark.id }}">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Пустая страница -->
+        {% else %}
+        <div class="bg-white border-2 border-brut-black rounded-xl p-12 text-center">
+            <div class="mb-6">
+                <i class="fas fa-bookmark text-5xl text-gray-400 mb-4"></i>
+                <h3 class="font-bold text-xl mb-2">
+                    {% if status_filter and status_filter != 'all' %}
+                    Книги с статусом "{{ status_filter }}" не найдены
+                    {% else %}
+                    Ваши закладки пусты
+                    {% endif %}
+                </h3>
+                <p class="text-gray-600 mb-8">
+                    {% if status_filter and status_filter != 'all' %}
+                    Попробуйте выбрать другой фильтр или добавьте книги с этим статусом
+                    {% else %}
+                    Добавляйте книги в закладки, чтобы отслеживать свой прогресс чтения
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'book_list' %}" 
+                   class="bg-brut-black text-white px-6 py-3 rounded-lg border-2 border-brut-black font-bold hover:bg-soft-lime hover:text-brut-black transition-colors">
+                    Найти книги
+                </a>
+                <a href="{% url 'recommendation_quiz' %}" 
+                   class="bg-white text-brut-black px-6 py-3 rounded-lg border-2 border-brut-black font-bold hover:bg-soft-purple transition-colors">
+                    Получить рекомендации
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% else %}
+    <!-- Неавторизованный пользователь -->
+    <div class="bg-white border-2 border-brut-black rounded-xl p-12 text-center">
+        <i class="fas fa-bookmark text-5xl text-gray-400 mb-4"></i>
+        <h3 class="font-bold text-xl mb-2">Доступно только авторизованным пользователям</h3>
+        <p class="text-gray-600 mb-8">Войдите, чтобы сохранять книги в закладки и отслеживать свой прогресс чтения</p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/admin/login/" 
+               class="bg-brut-black text-white px-6 py-3 rounded-lg border-2 border-brut-black font-bold hover:bg-soft-lime hover:text-brut-black transition-colors">
+                Войти
+            </a>
+            <a href="{% url 'book_list' %}" 
+               class="bg-white text-brut-black px-6 py-3 rounded-lg border-2 border-brut-black font-bold hover:bg-soft-purple transition-colors">
+                Перейти к книгам
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

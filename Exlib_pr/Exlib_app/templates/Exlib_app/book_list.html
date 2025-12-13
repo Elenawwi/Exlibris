@@ -38,7 +38,7 @@
                             Все жанры
                         </a>
                         {% for genre in genres %}
-                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}genre={{ genre.id }}{% if selected_author %}&author={{ selected_author }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}genre={{ genre.id }}{% if selected_author %}&author={{ selected_author }}{% endif %}{% if sort_by and sort_by != '-created_at' %}&sort={{ sort_by }}{% endif %}"
                            class="block px-3 py-2 rounded {% if selected_genre == genre.id|stringformat:'i' %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
                             {{ genre.name }}
                         </a>
@@ -50,12 +50,12 @@
                 <div class="mb-6">
                     <h4 class="font-bold mb-2 text-sm uppercase text-gray-500">Авторы</h4>
                     <div class="space-y-1">
-                        <a href="{% url 'book_list' %}{% if search_query %}?search={{ search_query }}{% endif %}"
+                        <a href="{% url 'book_list' %}{% if search_query %}search={{ search_query }}{% endif %}"
                            class="block px-3 py-2 rounded {% if not selected_author %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
                             Все авторы
                         </a>
                         {% for author in authors %}
-                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_genre %}genre={{ selected_genre }}{% else %}&{% endif %}author={{ author.id }}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_genre %}genre={{ selected_genre }}{% else %}&{% endif %}author={{ author.id }}{% if sort_by and sort_by != '-created_at' %}&sort={{ sort_by }}{% endif %}"
                            class="block px-3 py-2 rounded {% if selected_author == author.id|stringformat:'i' %}bg-soft-lime{% else %}hover:bg-gray-100{% endif %}">
                             {{ author.name }}
                         </a>
@@ -81,6 +81,16 @@
                         </option>
                     </select>
                 </div>
+                
+                <!-- Очистить фильтры (если есть активные) -->
+                {% if search_query or selected_genre or selected_author %}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <a href="{% url 'book_list' %}" 
+                       class="w-full text-center bg-red-100 text-red-700 px-3 py-2 rounded border border-red-300 hover:bg-red-200 transition-colors text-sm font-bold">
+                        Очистить все фильтры
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
         
@@ -91,7 +101,7 @@
                 {% for book in books %}
                 <div class="book-card bg-white border-2 border-brut-black rounded-xl p-4 shadow-hard hover:shadow-hard-hover transition-all">
                     <a href="{% url 'book_detail' book.slug %}">
-                        <div class="cover-container mb-4">
+                        <div class="cover-container mb-4 relative">
                             <div class="aspect-[2/3] bg-gray-200 rounded-lg border-2 border-brut-black overflow-hidden">
                                 {% if book.cover_image %}
                                     <img src="{{ book.cover_image.url }}" 
@@ -127,36 +137,73 @@
                     </div>
                     
                     <div class="flex gap-2">
-                        {% if user.is_authenticated %}
-                            {% with user_book_statuses|default:'' as statuses %}
-                                {% if book.id in statuses %}
-                                    {% if statuses|get_item:book.id == 'reading' %}
-                                        <button class="book-status-btn flex-1 bg-brut-black text-white py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-soft-lime hover:text-brut-black transition-colors"
-                                                data-book-id="{{ book.id }}" data-status="reading">
-                                            Читаю
-                                        </button>
+                    {% if user.is_authenticated %}
+                        {% with book_id_string=book.id|stringformat:"s" %}
+                            {# Способ 1: Используем цикл для поиска статуса #}
+                            {% for book_id, status in user_book_statuses_dict.items %}
+                                {% if book_id == book_id_string and status == 'reading' %}
+                                    <button class="book-status-btn flex-1 bg-brut-black text-white py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-soft-lime hover:text-brut-black transition-colors"
+                                            data-book-id="{{ book.id }}" data-status="reading">
+                                        Читаю
+                                    </button>
                                     {% else %}
-                                        <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
-                                                data-book-id="{{ book.id }}" data-status="planned">
-                                            В планы
-                                        </button>
-                                    {% endif %}
-                                {% else %}
                                     <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
                                             data-book-id="{{ book.id }}" data-status="planned">
                                         В планы
                                     </button>
                                 {% endif %}
-                            {% endwith %}
-                        {% else %}
-                            <a href="/admin/login/" class="flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors text-center">
-                                В планы
-                            </a>
-                        {% endif %}
+                            {% empty %}
+                                {# Если словарь пустой #}
+                                <button class="book-status-btn flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors"
+                                        data-book-id="{{ book.id }}" data-status="planned">
+                                    В планы
+                                </button>
+                            {% endfor %}
+                        {% endwith %}
+                    {% else %}
+                        <a href="/admin/login/" class="flex-1 bg-white text-brut-black py-2 rounded border-2 border-brut-black font-bold text-sm hover:bg-brut-black hover:text-white transition-colors text-center">
+                            В планы
+                        </a>
+                    {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             </div>
+            
+            <!-- Пагинация -->
+            {% if books.has_other_pages %}
+            <div class="mt-12 flex justify-center">
+                <nav class="flex items-center gap-2">
+                    {% if books.has_previous %}
+                    <a href="?{% if url_params %}{{ url_params }}&{% endif %}page={{ books.previous_page_number }}"
+                       class="px-4 py-2 border-2 border-brut-black rounded hover:bg-gray-100">
+                        ← Назад
+                    </a>
+                    {% endif %}
+                    
+                    {% for num in books.paginator.page_range %}
+                        {% if books.number == num %}
+                        <span class="px-4 py-2 bg-brut-black text-white border-2 border-brut-black rounded">
+                            {{ num }}
+                        </span>
+                        {% elif num > books.number|add:'-3' and num < books.number|add:'3' %}
+                        <a href="?{% if url_params %}{{ url_params }}&{% endif %}page={{ num }}"
+                           class="px-4 py-2 border-2 border-brut-black rounded hover:bg-gray-100">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if books.has_next %}
+                    <a href="?{% if url_params %}{{ url_params }}&{% endif %}page={{ books.next_page_number }}"
+                       class="px-4 py-2 border-2 border-brut-black rounded hover:bg-gray-100">
+                        Вперед →
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            {% endif %}
+            
             {% else %}
             <div class="bg-white border-2 border-brut-black rounded-xl p-12 text-center">
                 <i class="fas fa-book-open text-5xl text-gray-400 mb-4"></i>

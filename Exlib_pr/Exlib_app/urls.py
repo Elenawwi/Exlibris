@@ -13,7 +13,6 @@ urlpatterns = [
     
     # Аудиокниги
     path('audiobooks/', views.audiobook_list, name='audiobook_list'),
-    path('audiobooks/<slug:slug>/', views.audiobook_detail, name='audiobook_detail'),
     
     # Форум
     path('forum/', views.forum, name='forum'),
@@ -30,6 +29,7 @@ urlpatterns = [
     # Профиль и закладки
     path('profile/', views.profile, name='profile'),
     path('bookmarks/', views.bookmarks, name='bookmarks'),
+    path('api/remove-bookmark/', views.remove_bookmark, name='remove_bookmark'),
     
     # О проекте
     path('about/', views.about, name='about'),

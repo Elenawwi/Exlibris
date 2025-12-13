@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -36,6 +37,7 @@ def index(request):
     
     return render(request, 'Exlib_app/index.html', context)
 
+# views.py - исправленная функция book_list
 def book_list(request):
     context = get_common_context()
     
@@ -65,13 +67,40 @@ def book_list(request):
     if sort in ['title', '-title', 'created_at', '-created_at', 'match_percentage', '-match_percentage']:
         books = books.order_by(sort)
     
+    # Пагинация (добавьте эту строку)
+    page = request.GET.get('page', 1)
+    paginator = Paginator(books, 12)  # 12 книг на страницу
+    
+    try:
+        books_page = paginator.page(page)
+    except PageNotAnInteger:
+        books_page = paginator.page(1)
+    except EmptyPage:
+        books_page = paginator.page(paginator.num_pages)
+    
+    # Собираем параметры для URL
+    url_params = request.GET.copy()
+    if 'page' in url_params:
+        del url_params['page']
+    
     context.update({
-        'books': books,
+        'books': books_page,  # Используем страницу, а не все книги
         'search_query': search,
         'selected_genre': genre_id,
         'selected_author': author_id,
         'sort_by': sort,
+        'url_params': url_params.urlencode(),  # Для пагинации
     })
+    
+    if request.user.is_authenticated:
+        # Получаем статусы книг пользователя
+        user_book_statuses = UserBookStatus.objects.filter(
+            user=request.user,
+            book__in=[b.id for b in books_page]
+        )
+        context['user_book_statuses_dict'] = {
+            status.book_id: status.status for status in user_book_statuses
+        }
     
     return render(request, 'Exlib_app/book_list.html', context)
 
@@ -90,31 +119,79 @@ def book_detail(request, slug):
             pass
     
     return render(request, 'Exlib_app/book_detail.html', context)
-
 def audiobook_list(request):
     context = get_common_context()
+    
+    audiobooks = Audiobook.objects.all()
+    
+    # Поиск
+    search = request.GET.get('search', '')
+    if search:
+        audiobooks = audiobooks.filter(
+            Q(title__icontains=search) |
+            Q(author__name__icontains=search)
+        )
+    
+    # Фильтрация по жанру (если у Audiobook есть поле genre)
+    genre_id = request.GET.get('genre')
+    if genre_id and hasattr(Audiobook, 'genre'):
+        audiobooks = audiobooks.filter(genre_id=genre_id)
+    
+    # Сортировка
+    sort = request.GET.get('sort', 'order')
+    if sort in ['title', '-title', 'order', '-order']:
+        audiobooks = audiobooks.order_by(sort)
+    
     context.update({
-        'audiobooks': Audiobook.objects.all(),
+        'audiobooks': audiobooks,
+        'search_query': search,
     })
     return render(request, 'Exlib_app/audiobook_list.html', context)
 
-def audiobook_detail(request, slug):
-    audiobook = get_object_or_404(Audiobook, slug=slug)
-    context = get_common_context()
-    context.update({
-        'audiobook': audiobook,
-    })
-    return render(request, 'Exlib_app/audiobook_detail.html', context)
-
 def forum(request):
     context = get_common_context()
+    
+    posts = ForumPost.objects.all().order_by('-is_pinned', '-created_at')
+    
+    # Фильтрация по категории
+    category = request.GET.get('category')
+    if category and category != 'all':
+        posts = posts.filter(category=category)
+    
+    # Поиск
+    search_query = request.GET.get('q')
+    if search_query:
+        posts = posts.filter(
+            Q(title__icontains=search_query) |
+            Q(content__icontains=search_query)
+        )
+    
+    # Фильтрация по группе
+    group_id = request.GET.get('group')
+    if group_id:
+        posts = posts.filter(forum_group_id=group_id)
+    
+    # Пагинация
+    page = request.GET.get('page', 1)
+    paginator = Paginator(posts, 10)
+    
+    try:
+        posts_page = paginator.page(page)
+    except PageNotAnInteger:
+        posts_page = paginator.page(1)
+    except EmptyPage:
+        posts_page = paginator.page(paginator.num_pages)
+    
+    # Закрепленные посты
+    pinned_posts = ForumPost.objects.filter(is_pinned=True).order_by('-created_at')[:3]
+    
     context.update({
-        'posts': ForumPost.objects.all().order_by('-created_at')[:20],
+        'posts': posts_page,
+        'pinned_posts': pinned_posts,
         'groups': ForumGroup.objects.all(),
         'reading_challenge': ReadingChallenge.objects.filter(is_active=True).first(),
     })
     return render(request, 'Exlib_app/forum.html', context)
-
 def forum_post_detail(request, post_id):
     post = get_object_or_404(ForumPost, id=post_id)
     post.views += 1
@@ -233,13 +310,19 @@ def update_book_status(request):
 def profile(request):
     context = get_common_context()
     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    user_books = UserBookStatus.objects.filter(user=request.user)
+    user_books = UserBookStatus.objects.filter(user=request.user).select_related('book')[:6]
+    
+    # Количество постов пользователя
+    forum_posts_count = ForumPost.objects.filter(author=request.user).count()
     
     context.update({
         'user_profile': user_profile,
         'user_books': user_books,
         'reading_challenge': ReadingChallenge.objects.filter(is_active=True).first(),
+        'forum_posts_count': forum_posts_count,
+        'user_forum_posts': ForumPost.objects.filter(author=request.user).order_by('-created_at')[:5],
     })
+    
     return render(request, 'Exlib_app/profile.html', context)
 
 @login_required
@@ -247,17 +330,48 @@ def bookmarks(request):
     context = get_common_context()
     status_filter = request.GET.get('status', 'all')
     
+    # Получаем все закладки пользователя
     if status_filter == 'all':
-        books = UserBookStatus.objects.filter(user=request.user)
+        bookmarked_books = UserBookStatus.objects.filter(user=request.user).select_related('book', 'book__author', 'book__genre')
     else:
-        books = UserBookStatus.objects.filter(user=request.user, status=status_filter)
+        bookmarked_books = UserBookStatus.objects.filter(user=request.user, status=status_filter).select_related('book', 'book__author', 'book__genre')
+    
+    # Статистика
+    total_books = UserBookStatus.objects.filter(user=request.user).count()
+    reading_count = UserBookStatus.objects.filter(user=request.user, status='reading').count()
+    planned_count = UserBookStatus.objects.filter(user=request.user, status='planned').count()
+    read_count = UserBookStatus.objects.filter(user=request.user, status='read').count()
+    abandoned_count = UserBookStatus.objects.filter(user=request.user, status='abandoned').count()
     
     context.update({
-        'bookmarked_books': books,
+        'bookmarked_books': bookmarked_books,
         'status_filter': status_filter,
+        'total_books': total_books,
+        'reading_count': reading_count,
+        'planned_count': planned_count,
+        'read_count': read_count,
+        'abandoned_count': abandoned_count,
     })
     return render(request, 'Exlib_app/bookmarks.html', context)
 
 def about(request):
     context = get_common_context()
     return render(request, 'Exlib_app/about.html', context)
+
+@login_required
+@require_POST
+def remove_bookmark(request):
+    try:
+        bookmark_id = request.POST.get('bookmark_id')
+        
+        if not bookmark_id:
+            return JsonResponse({'success': False, 'error': 'Не указана закладка'})
+        
+        # Проверяем, что закладка принадлежит пользователю
+        bookmark = get_object_or_404(UserBookStatus, id=bookmark_id, user=request.user)
+        bookmark.delete()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

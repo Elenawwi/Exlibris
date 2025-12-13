@@ -42,8 +42,11 @@
             {% if reading_challenge %}
             <div class="text-sm mb-4 font-medium">Прочитано {{ reading_challenge.current }}/{{ reading_challenge.goal }} книг</div>
             
-            <div class="w-full bg-white border-2 border-brut-black h-4 rounded-full overflow-hidden mb-2">
-                <div class="progress-bar bg-brut-black h-full" style="width: {{ reading_challenge.progress_percentage }}%"></div>
+            <div class="w-full bg-white border-2 border-brut-black h-3 rounded-full overflow-hidden mb-1">
+                <div class="progress-bar bg-brut-black h-full" 
+                    data-progress="{{ reading_challenge.progress_percentage }}"
+                    id="progress-bar-{{ reading_challenge.id|default:'0' }}">
+                </div>
             </div>
             
             <div class="text-xs text-gray-600 text-right" id="progress-text">{{ reading_challenge.progress_percentage }}%</div>
